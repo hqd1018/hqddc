@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>自定义属性界面 - 城市道路网关键路段识别系统</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: url("http://62.234.99.52:7791/i/2025/04/02/67ed33bc2417c.jpg")
+          no-repeat center center fixed;
+        background-size: 40% auto;
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        color: #fff;
+      }
+
+      .container {
+        width: 100%;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      /* 导航栏样式修改为与2.html一致 */
+      .header {
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        padding: 20px 40px;
+        background-color: #66a4db; /* 与2.html一致的背景色 */
+        border-radius: 12px; /* 新增圆角 */
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15); /* 新增阴影 */
+        height: 130px; /* 保持高度一致 */
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        margin-right: 40px; /* 新增右侧间距 */
+      }
+
+      .logo img {
+        height: 50px; /* 从40px改为50px，与2.html一致 */
+        margin-right: 10px;
+        cursor: pointer; /* 新增手型光标 */
+      }
+
+      .logo-text {
+        font-size: 24px; /* 从20px增大 */
+        font-weight: bold; /* 新增加粗 */
+        color: #f8f8ff; /* 调整文字颜色 */
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; /* 调整字体系列 */
+        letter-spacing: 1px; /* 新增字母间距 */
+        cursor: pointer; /* 保留背景切换功能 */
+      }
+
+      .content-area {
+        background: rgba(0, 0, 0, 0.5);
+        padding: 20px;
+        border-radius: 5px;
+        margin-top: 20px;
+      }
+
+      .button-container {
+        position: fixed;
+        bottom: 40px;
+        right: calc((100% - 66%) / 2 + 40px);
+        display: flex;
+        gap: 16px;
+        z-index: 1000;
+      }
+
+      .apple-button {
+        padding: 12px 24px;
+        border-radius: 20px;
+        font-size: 15px;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+
+      .primary-button {
+        background-color: #0071e3;
+        color: white;
+        box-shadow: 0 2px 8px rgba(0, 113, 227, 0.3);
+      }
+
+      .primary-button:hover {
+        background-color: #0077ed;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 113, 227, 0.4);
+      }
+
+      .secondary-button {
+        background-color: rgba(255, 255, 255, 0.8);
+        color: #0071e3;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .secondary-button:hover {
+        background-color: rgba(255, 255, 255, 0.9);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .apple-button:active {
+        transform: translateY(0);
+      }
+
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal {
+        background-color: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        width: 1000px;
+        box-shadow: 0 24px 40px rgba(0, 0, 0, 0.1);
+        text-align: left;
+        color: #1d1d1f;
+      }
+
+      .modal-icon {
+        width: 50px;
+        height: 50px;
+        background-color: #ff3b30;
+        border-radius: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+      }
+
+      .modal-icon svg {
+        width: 24px;
+        height: 24px;
+        fill: white;
+      }
+
+      .modal-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #1d1d1f;
+      }
+
+      .modal-content {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .section {
+        padding: 20px 0;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .modal-select {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        background-color: #f9f9f9;
+        font-size: 14px;
+        color: #333;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        background-size: 12px;
+      }
+
+      .modal-select:hover {
+        border-color: #0071e3;
+        box-shadow: 0 4px 8px rgba(0, 113, 227, 0.2);
+      }
+
+      .modal-select:focus {
+        outline: none;
+        border-color: #0071e3;
+        box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2);
+      }
+
+      .slider {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 8px;
+        background: #ddd;
+        outline: none;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+        border-radius: 4px;
+      }
+
+      .slider:hover {
+        opacity: 1;
+      }
+
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        background: #0071e3;
+        cursor: pointer;
+        border-radius: 50%;
+      }
+
+      .slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        background: #0071e3;
+        cursor: pointer;
+        border-radius: 50%;
+      }
+
+      .modal-button {
+        background-color: #0071e3;
+        color: white;
+        border: none;
+        border-radius: 20px;
+        padding: 10px 24px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        width: 100%;
+      }
+
+      .modal-button:hover {
+        background-color: #005bb5;
+        transform: translateY(-1px);
+      }
+
+      .settings-button {
+        position: fixed;
+        top: 150px;
+        left: 40px;
+        padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        border-radius: 20px;
+        font-size: 15px;
+        font-weight: 500;
+        color: #0071e3;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+      }
+
+      .settings-button:hover {
+        background-color: rgba(255, 255, 255, 1);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .settings-button:active {
+        transform: translateY(0);
+      }
+
+      .modal-table {
+        width: 100%;
+        margin-bottom: 20px;
+        border-collapse: collapse;
+        max-height: 300px;
+        overflow-y: auto;
+        display: block;
+      }
+
+      .modal-table th,
+      .modal-table td {
+        padding: 10px;
+        text-align: center;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .modal-input {
+        width: 80%;
+        padding: 5px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+
+      .modal-buttons {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .result-interface {
+        padding: 20px;
+        background-color: #f0f2f5;
+        min-height: 100vh;
+        color: #333;
+      }
+
+      .result-header {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #1d1d1f;
+      }
+
+      .result-content {
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+      }
+
+      .result-section {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+        color: #333;
+      }
+
+      .result-section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .result-section h2 {
+        color: #1d1d1f;
+      }
+
+      .result-section p {
+        color: #666;
+      }
+
+      .importance-ranking {
+        background-color: #e0f7fa;
+      }
+
+      .basic-info {
+        background-color: #f1f8e9;
+      }
+
+      .third-section {
+        background-color: #fff3e0;
+      }
+
+      .result-section.importance-ranking {
+        flex: 0.15;
+      }
+
+      .input-container {
+        max-height: 80vh;
+        overflow-y: auto;
+        scrollbar-width: none; /* For Firefox */
+        -ms-overflow-style: none; /* For Internet Explorer and Edge */
+      }
+
+      .input-container::-webkit-scrollbar {
+        display: none; /* For Chrome, Safari, and Opera */
+      }
+
+      .styled-input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        background-color: #f9f9f9;
+        font-size: 14px;
+        color: #333;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .styled-input:focus {
+        outline: none;
+        border-color: #0071e3;
+        box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2);
+      }
+
+      .elegant-input {
+        width: 100%;
+        max-width: 500px;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        background-color: #f9f9f9;
+        font-size: 16px;
+        color: #333;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .elegant-input:focus {
+        outline: none;
+        border-color: #0071e3;
+        box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <nav class="header">
+        <div class="logo">
+          <img
+            src="logo.png"
+            alt="Logo"
+            style="height: 50px; margin-right: 10px; cursor: pointer"
+          />
+
+          <span
+            class="logo-text"
+            onclick="document.getElementById('backgroundInput').click();"
+            >城市道路网关键路段识别系统</span
+          >
+        </div>
+        <ul class="nav-menu">
+          <a href="2.html">首页</a>
+          <a href="2.html">路网选择</a>
+          <a href="#">速度和流量设置</a>
+          <a href="#">场景设置</a>
+          <a href="#" class="active">自定义属性设置</a>
+          <a href="#">关键路段评估</a>
+        </ul>
+      </nav>
+      <button class="settings-button">结果属性设置</button>
+      <div class="map-container"></div>
+    </div>
+
+    <div class="button-container">
+      <button
+        class="apple-button secondary-button"
+        onclick="window.location.href='2.html'"
+      >
+        重选
+      </button>
+      <button class="apple-button primary-button">确认</button>
+    </div>
+
+    <div class="modal-overlay" id="dataTypeModal">
+      <div class="modal">
+        <div class="modal-icon">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v7h-2zm0 8h2v2h-2z"
+            />
+          </svg>
+        </div>
+        <div class="modal-title">请选择你拥有的数据类型</div>
+        <div class="modal-content">
+          <button class="modal-button" onclick="openFlowSpeedModal()">
+            实际流量和速度
+          </button>
+          <button class="modal-button" onclick="openTrafficDemandModal()">
+            交通需求
+          </button>
+          <button class="modal-button" onclick="closeDataTypeModal()">
+            无数据
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="flowSpeedModal">
+      <div class="modal">
+        <div class="modal-title">输入流量和速度</div>
+        <table class="modal-table">
+          <thead>
+            <tr>
+              <th>路程</th>
+              <th>流量(vph)</th>
+              <th>速度(km/h)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>①-②</td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入流量" />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>①-④</td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入流量" />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>②-③</td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入流量" />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>④-⑤</td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入流量" />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>④-⑧</td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入流量" />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑤-⑥</td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入流量" />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑤-⑨</td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入流量" />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑥-⑦</td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入流量" />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑥-⑩</td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入流量" />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑦-⑪</td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入流量" />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑧-⑫</td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入流量" />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑨-⑩</td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入流量" />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑨-⑬</td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入流量" />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑩-⑭</td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入流量" />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑪-⑮</td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入流量" />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑫-⑬</td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入流量" />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑬-⑭</td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入流量" />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑭-⑮</td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入流量" />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="modal-buttons">
+          <button class="modal-button" onclick="closeFlowSpeedModal()">
+            取消
+          </button>
+          <button class="modal-button" onclick="submitFlowSpeedData()">
+            确定
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="trafficDemandModal">
+      <div class="modal">
+        <div class="modal-title">输入交通需求量</div>
+        <table class="modal-table">
+          <thead>
+            <tr>
+              <th>路程</th>
+              <th>交通需求量(vph)</th>
+              <th>速度(km/h)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>①-②</td>
+              <td>
+                <input
+                  type="text"
+                  class="modal-input"
+                  placeholder="输入交通需求量"
+                />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>①-④</td>
+              <td>
+                <input
+                  type="text"
+                  class="modal-input"
+                  placeholder="输入交通需求量"
+                />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>②-③</td>
+              <td>
+                <input
+                  type="text"
+                  class="modal-input"
+                  placeholder="输入交通需求量"
+                />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>④-⑤</td>
+              <td>
+                <input
+                  type="text"
+                  class="modal-input"
+                  placeholder="输入交通需求量"
+                />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>④-⑧</td>
+              <td>
+                <input
+                  type="text"
+                  class="modal-input"
+                  placeholder="输入交通需求量"
+                />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑤-⑥</td>
+              <td>
+                <input
+                  type="text"
+                  class="modal-input"
+                  placeholder="输入交通需求量"
+                />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑤-⑨</td>
+              <td>
+                <input
+                  type="text"
+                  class="modal-input"
+                  placeholder="输入交通需求量"
+                />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑥-⑦</td>
+              <td>
+                <input
+                  type="text"
+                  class="modal-input"
+                  placeholder="输入交通需求量"
+                />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑥-⑩</td>
+              <td>
+                <input
+                  type="text"
+                  class="modal-input"
+                  placeholder="输入交通需求量"
+                />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑦-⑪</td>
+              <td>
+                <input
+                  type="text"
+                  class="modal-input"
+                  placeholder="输入交通需求量"
+                />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑧-⑫</td>
+              <td>
+                <input
+                  type="text"
+                  class="modal-input"
+                  placeholder="输入交通需求量"
+                />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑨-⑩</td>
+              <td>
+                <input
+                  type="text"
+                  class="modal-input"
+                  placeholder="输入交通需求量"
+                />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑨-⑬</td>
+              <td>
+                <input
+                  type="text"
+                  class="modal-input"
+                  placeholder="输入交通需求量"
+                />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑩-⑭</td>
+              <td>
+                <input
+                  type="text"
+                  class="modal-input"
+                  placeholder="输入交通需求量"
+                />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑪-⑮</td>
+              <td>
+                <input
+                  type="text"
+                  class="modal-input"
+                  placeholder="输入交通需求量"
+                />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑫-⑬</td>
+              <td>
+                <input
+                  type="text"
+                  class="modal-input"
+                  placeholder="输入交通需求量"
+                />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑬-⑭</td>
+              <td>
+                <input
+                  type="text"
+                  class="modal-input"
+                  placeholder="输入交通需求量"
+                />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+            <tr>
+              <td>⑭-⑮</td>
+              <td>
+                <input
+                  type="text"
+                  class="modal-input"
+                  placeholder="输入交通需求量"
+                />
+              </td>
+              <td>
+                <input type="text" class="modal-input" placeholder="输入速度" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="modal-buttons">
+          <button class="modal-button" onclick="closeTrafficDemandModal()">
+            取消
+          </button>
+          <button class="modal-button" onclick="submitTrafficDemandData()">
+            确定
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="resultAttributeModal">
+      <div class="modal">
+        <div class="modal-title" style="text-align: center">结果属性设置</div>
+        <div
+          class="modal-content"
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              width: 100%;
+              gap: 40px;
+              align-items: stretch;
+            "
+          >
+            <!-- Section 1: 失效概率 -->
+            <div
+              class="section"
+              style="
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                padding-bottom: 30px;
+                margin-bottom: 30px;
+                gap: 20px;
+              "
+            >
+              <h3 style="width: 100%; text-align: center; margin-bottom: 10px">
+                失效概率
+              </h3>
+              <label style="margin-bottom: 2px">拟合曲线分布</label>
+              <select class="modal-select" style="margin-bottom: 10px">
+                <option>正态分布（默认）</option>
+                <option>对数正态分布</option>
+                <option>威尔布分布</option>
+                <option>伽马分布</option>
+                <option>三参数伯尔分布</option>
+                <option>高斯混合模型</option>
+                <option>幂对数正态分布</option>
+                <option>广义极值分布</option>
+                <option>逆高斯分布</option>
+              </select>
+              <label style="margin-bottom: 2px">行程时间阈值</label>
+              <select class="modal-select">
+                <option>1.05</option>
+                <option>1.1</option>
+                <option selected>1.2（默认）</option>
+                <option>1.25</option>
+                <option>1.3</option>
+              </select>
+            </div>
+            <!-- Section 2: 矢量效果 -->
+            <div
+              class="section"
+              style="
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+                padding-bottom: 30px;
+                margin-bottom: 30px;
+                gap: 20px;
+              "
+            >
+              <h3 style="width: 100%; text-align: center">失效效果</h3>
+              <label>广义费用</label>
+              <select class="modal-select">
+                <option>时间价值（默认）</option>
+                <option>燃油消耗</option>
+                <option>付费意愿</option>
+              </select>
+              <label>指标权重</label>
+              <div style="display: flex; flex-direction: column; gap: 20px">
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                  "
+                >
+                  <span style="width: 180px; font-weight: 500; color: #333"
+                    >路网全局效率变化率</span
+                  >
+                  <input
+                    type="text"
+                    class="modal-input"
+                    placeholder="输入权重"
+                    style="
+                      flex: 1;
+                      padding: 8px;
+                      border-radius: 8px;
+                      border: 1px solid #ccc;
+                    "
+                  />
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                  "
+                >
+                  <span style="width: 180px; font-weight: 500; color: #333"
+                    >路网全局行程时间变化率</span
+                  >
+                  <input
+                    type="text"
+                    class="modal-input"
+                    placeholder="输入权重"
+                    style="
+                      flex: 1;
+                      padding: 8px;
+                      border-radius: 8px;
+                      border: 1px solid #ccc;
+                    "
+                  />
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                  "
+                >
+                  <span style="width: 180px; font-weight: 500; color: #333"
+                    >路网全局碳排放</span
+                  >
+                  <input
+                    type="text"
+                    class="modal-input"
+                    placeholder="输入权重"
+                    style="
+                      flex: 1;
+                      padding: 8px;
+                      border-radius: 8px;
+                      border: 1px solid #ccc;
+                    "
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Section 3: 关键度权重 -->
+          <div
+            class="section"
+            style="display: flex; flex-direction: column; align-items: center"
+          >
+            <h3 style="width: 100%; text-align: center">关键度权重</h3>
+            <div style="display: flex; align-items: center; width: 180%">
+              <span>失效概率</span>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value="50"
+                class="slider"
+                id="importanceSlider"
+                style="flex: 2; margin: 0 10px"
+              />
+              <span>失效后果</span>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                width: 150%;
+                margin-top: 5px;
+              "
+            >
+              <div id="leftPercentage" style="text-align: center">50%</div>
+              <div id="rightPercentage" style="text-align: center">50%</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-buttons" style="margin-top: 20px">
+          <button
+            class="modal-button"
+            style="background-color: #007aff; border-radius: 12px; width: 100%"
+            onclick="closeResultAttributeModal()"
+          >
+            确认
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <input
+      type="file"
+      id="backgroundInput"
+      style="display: none"
+      accept="image/*"
+      onchange="changeBackground(event)"
+    />
+
+    <script>
+      const dataTypeButton = document.querySelector(".settings-button");
+
+      console.log("Button:", dataTypeButton);
+
+      dataTypeButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log("Button clicked");
+      });
+
+      function openFlowSpeedModal() {
+        console.log("Opening Flow and Speed Modal");
+        document.getElementById("flowSpeedModal").style.display = "flex";
+      }
+
+      function closeFlowSpeedModal() {
+        console.log("Flow and Speed Modal closed");
+        document.getElementById("flowSpeedModal").style.display = "none";
+      }
+
+      function submitFlowSpeedData() {
+        console.log("Flow and Speed Data submitted");
+        closeFlowSpeedModal();
+      }
+
+      function openTrafficDemandModal() {
+        console.log("Opening Traffic Demand Modal");
+        document.getElementById("trafficDemandModal").style.display = "flex";
+      }
+
+      function closeTrafficDemandModal() {
+        console.log("Traffic Demand Modal closed");
+        document.getElementById("trafficDemandModal").style.display = "none";
+      }
+
+      function submitTrafficDemandData() {
+        console.log("Traffic Demand Data submitted");
+        closeTrafficDemandModal();
+      }
+
+      const resultAttributeButton = document.querySelector(".settings-button");
+      const resultAttributeModal = document.getElementById(
+        "resultAttributeModal"
+      );
+
+      // Ensure only the 'resultAttributeModal' is triggered
+      resultAttributeButton.removeEventListener("click", openFlowSpeedModal);
+      resultAttributeButton.removeEventListener(
+        "click",
+        openTrafficDemandModal
+      );
+      // Remove any other event listeners that might cause a second modal to appear
+      resultAttributeButton.removeEventListener("click", (e) => {
+        document.getElementById("flowSpeedModal").style.display = "flex";
+        document.getElementById("trafficDemandModal").style.display = "flex";
+      });
+
+      // Add event listener to only open the 'resultAttributeModal'
+      resultAttributeButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        resultAttributeModal.style.display = "flex";
+      });
+
+      function closeResultAttributeModal() {
+        resultAttributeModal.style.display = "none";
+      }
+
+      // 阻止点击事件冒泡
+      document.querySelector(".modal").addEventListener("click", (e) => {
+        e.stopPropagation();
+      });
+
+      const slider = document.getElementById("importanceSlider");
+      const leftPercentage = document.getElementById("leftPercentage");
+      const rightPercentage = document.getElementById("rightPercentage");
+
+      slider.oninput = function () {
+        const leftValue = this.value;
+        const rightValue = 100 - leftValue;
+        leftPercentage.textContent = leftValue + "%";
+        rightPercentage.textContent = rightValue + "%";
+      };
+
+      function changeLogo(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            document.querySelector(".logo img").src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+
+      function changeBackground(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            document.body.style.backgroundImage = `url(${e.target.result})`;
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+
+      const confirmButton = document.querySelector(
+        ".apple-button.primary-button"
+      );
+
+      if (confirmButton) {
+        console.log("Confirm button:", confirmButton);
+
+        confirmButton.addEventListener("click", () => {
+          console.log("Confirm button clicked");
+          window.location.href = "result-attribute-interface.html";
+        });
+      } else {
+        console.error("Confirm button not found");
+      }
+    </script>
+  </body>
+</html>

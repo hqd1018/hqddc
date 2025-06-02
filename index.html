@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>框选仿真路网 - 城市道路网关键路段识别系统</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: url("http://62.234.99.52:7791/i/2025/04/02/67ed1ec5ce042.png")
+          no-repeat center center fixed;
+        background-size: 97% auto;
+        min-height: 100vh;
+        font-family: Arial, sans-serif;
+        color: #fff;
+      }
+
+      .container {
+        width: 100%;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      /* 导航栏样式修改为与2.html一致 */
+      .header {
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        padding: 20px 40px;
+        background-color: #66a4db; /* 改为styles.css中的背景色 */
+        border-radius: 12px;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        height: 130px; /* 保持高度一致 */
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        margin-right: 40px; /* 新增margin-right，与styles.css一致 */
+      }
+
+      .logo img {
+        height: 50px; /* 从40px改为50px，与2.html一致 */
+        margin-right: 10px;
+        cursor: pointer; /* 新增cursor，与styles.css一致 */
+      }
+
+      .logo-text {
+        font-size: 24px; /* 从20px改为24px */
+        font-weight: bold; /* 新增字体加粗 */
+        color: #f8f8ff; /* 改为styles.css中的颜色 */
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; /* 新增字体系列 */
+        letter-spacing: 1px; /* 新增字母间距 */
+      }
+
+      .content-area {
+        background: rgba(0, 0, 0, 0.5);
+        padding: 20px;
+        border-radius: 5px;
+        margin-top: 20px;
+      }
+
+      .button-container {
+        position: fixed;
+        bottom: 40px;
+        right: calc((100% - 66%) / 2 + 40px);
+        display: flex;
+        gap: 16px;
+        z-index: 1000;
+      }
+
+      .apple-button {
+        padding: 12px 24px;
+        border-radius: 20px;
+        font-size: 15px;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+
+      .primary-button {
+        background-color: #0071e3;
+        color: white;
+        box-shadow: 0 2px 8px rgba(0, 113, 227, 0.3);
+      }
+
+      .primary-button:hover {
+        background-color: #0077ed;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 113, 227, 0.4);
+      }
+
+      .secondary-button {
+        background-color: rgba(255, 255, 255, 0.8);
+        color: #0071e3;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .secondary-button:hover {
+        background-color: rgba(255, 255, 255, 0.9);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .apple-button:active {
+        transform: translateY(0);
+      }
+
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal {
+        background-color: rgba(255, 255, 255, 0.95);
+        border-radius: 14px;
+        padding: 20px;
+        width: 400px;
+        box-shadow: 0 24px 40px rgba(0, 0, 0, 0.25);
+        text-align: center;
+      }
+
+      .modal-icon {
+        width: 50px;
+        height: 50px;
+        background-color: #ff3b30;
+        border-radius: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+      }
+
+      .modal-icon svg {
+        width: 24px;
+        height: 24px;
+        fill: white;
+      }
+
+      .modal-title {
+        color: #1d1d1f;
+        font-size: 17px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .modal-message {
+        color: #86868b;
+        font-size: 13px;
+        line-height: 1.4;
+        margin-bottom: 20px;
+      }
+
+      .modal-button {
+        background-color: #0071e3;
+        color: white;
+        border: none;
+        border-radius: 20px;
+        padding: 8px 24px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .modal-button:hover {
+        background-color: #0077ed;
+        transform: translateY(-1px);
+      }
+
+      .settings-button {
+        position: absolute;
+        top: 150px; /* Adjusted to be below the menu bar */
+        left: 40px;
+        padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        border-radius: 20px;
+        font-size: 15px;
+        font-weight: 500;
+        color: #0071e3;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+      }
+
+      .settings-button:hover {
+        background-color: rgba(255, 255, 255, 1);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .settings-button:active {
+        transform: translateY(0);
+      }
+    </style>
+  </head>
+  <body style="margin: 0">
+    <div class="container">
+      <nav class="header">
+        <div class="logo">
+          <img
+            src="logo.png"
+            alt="Logo"
+            style="height: 50px; margin-right: 10px; cursor: pointer" /* 补充cursor样式 */
+          />
+
+          <span
+            class="logo-text"
+            onclick="document.getElementById('backgroundInput').click();"
+            >城市道路网关键路段识别系统</span
+          >
+        </div>
+        <ul class="nav-menu">
+          <a href="2.html">首页</a>
+          <a href="2.html" class="active">路网选择</a> <!-- 保留active状态 -->
+          <a href="#">速度和流量设置</a>
+          <a href="#">场景设置</a>
+          <a href="#">自定义属性设置</a>
+          <a href="#">关键路段评估</a>
+        </ul>
+      </nav>
+      <button
+        class="settings-button"
+        onclick="window.location.href='speed-flow-settings.html'"
+      >
+        速度和流量设置
+      </button>
+      <div class="map-container"></div>
+    </div>
+
+    <div class="button-container">
+      <button
+        class="apple-button secondary-button"
+        onclick="window.location.href='2.html'"
+      >
+        重选
+      </button>
+      <button class="apple-button primary-button">确认</button>
+    </div>
+
+    <div class="modal-overlay" id="warningModal">
+      <div class="modal">
+        <div class="modal-icon">
+          <svg viewBox="0 0 24 24">
+            <path
+              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v7h-2zm0 8h2v2h-2z"
+            />
+          </svg>
+        </div>
+        <div class="modal-title">注意</div>
+        <div class="modal-message">
+          您选择的路网必须为连通的，否则无法点击确定！
+        </div>
+        <button
+          class="modal-button"
+          onclick="window.location.href='speed-flow-settings.html'"
+        >
+          我知道了
+        </button>
+      </div>
+    </div>
+
+    <input
+      type="file"
+      id="backgroundInput"
+      style="display: none"
+      accept="image/*"
+      onchange="changeBackground(event)"
+    />
+
+    <script>
+      const confirmButton = document.querySelector(".primary-button");
+      const modal = document.getElementById("warningModal");
+
+      confirmButton.addEventListener("click", () => {
+        modal.style.display = "flex";
+      });
+
+      function closeModal() {
+        modal.style.display = "none";
+      }
+
+      // 点击模态框外部也可以关闭
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+          closeModal();
+        }
+      });
+
+      function changeLogo(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            document.querySelector(".logo img").src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+
+      function changeBackground(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            document.body.style.backgroundImage = `url(${e.target.result})`;
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    </script>
+  </body>
+</html>
