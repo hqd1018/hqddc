@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>城市道路网关键路段识别系统</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .image-container {
+        position: relative;
+        width: 400px;
+        height: 400px;
+        margin: 50px auto;
+      }
+
+      .loader {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: translate(-50%, -50%) rotate(0deg);
+        }
+        100% {
+          transform: translate(-50%, -50%) rotate(360deg);
+        }
+      }
+
+      .image-container img {
+        width: 100%;
+        height: 100%;
+        display: none; /* 初始时隐藏图片 */
+      }
+
+      .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="header">
+      <div class="logo">
+        <img
+          src="{{ url_for('static', filename='img/logo.png') }}"
+          <!--
+          建议改为绝对路径或Flask模板路径（如使用框架）
+          --
+        />
+        alt="Logo" style="height: 50px; margin-right: 10px; cursor: pointer"
+        <!-- 统一logo尺寸 -->
+        />
+        <span class="logo-text">城市道路网关键路段识别系统</span>
+      </div>
+      <ul class="nav-menu">
+        <a href="2.html">首页</a>
+        <a href="select-network.html">路网选择</a>
+        <a href="speed-flow-settings.html">速度和流量设置</a>
+        <a href="scene-settings.html">场景设置</a>
+        <a href="shuxing.html">自定义属性设置</a>
+        <a href="result-attribute-interface.html" class="active"
+          >关键路段评估</a
+        >
+      </ul>
+    </nav>
+    <script>
+      function changeLogo(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            document.querySelector(".logo img").src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    </script>
+    <div
+      class="outer-container"
+      style="
+        background-color: #f3f4f6;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+      "
+    >
+      <div class="result-header" style="text-align: center">
+        <h1>结果属性界面</h1>
+      </div>
+      <div
+        class="result-content"
+        style="display: flex; flex-direction: row; gap: 20px"
+      >
+        <!-- 定义结果内容的容器，使用 flex 布局，水平排列，元素之间间隔 20px -->
+        <!-- 结果展示部分，用于显示重要性排名 -->
+        <div
+          class="result-section importance-ranking"
+          style="flex: 0.15; background-color: #fff"
+          <!--
+          定义结果展示部分的样式，设置为占据0.15的弹性空间，并设置背景颜色为白色
+          --
+        >
+          <!-- 结束结果展示部分 -->
+          <h2 style="text-align: center">关键度排序</h2>
+          <hr
+            style="border: none; border-top: 1px solid #e0e0e0; margin: 10px 0"
+          />
+          <div class="input-container">
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >1</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段1-2</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >2</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段11-16</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >3</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段11-6</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >4</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段10-15</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >5</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段6-11</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >6</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段7-12</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >7</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段12-17</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >8</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段10-5</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >9</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段17-18</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >10</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段15-14</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >11</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段17-16</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >12</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段8-7</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >13</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段15-16</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >14</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段16-17</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >15</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段18-17</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >16</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段7-2</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >17</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段12-11</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >18</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段9-10</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >19</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段12-17</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >20</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段11-12</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >21</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段1-4</span
+              >
+            </div>
+            <div
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <span
+                style="
+                  width: 30px;
+                  text-align: center;
+                  font-weight: bold;
+                  color: #333;
+                "
+                >22</span
+              >
+              <span
+                style="
+                  flex: 1;
+                  padding: 10px;
+                  border-radius: 8px;
+                  background-color: #f9f9f9;
+                  font-size: 16px;
+                  color: #333;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  cursor: pointer;
+                "
+                onclick="editRanking(this)"
+                >路段3-8</span
+              >
+            </div>
+          </div>
+        </div>
+        <div
+          class="result-section basic-info"
+          style="flex: 0.3; background-color: #fff"
+        >
+          <h2 style="text-align: center">路段基本信息</h2>
+          <hr
+            style="border: none; border-top: 2px solid #e0e0e0; margin: 20px 0"
+          />
+          <!-- First Block: 行程时间处理图 -->
+          <div class="section" style="margin-bottom: 20px">
+            <h3 style="text-align: center">行程时间处理图</h3>
+            <hr
+              style="
+                border: none;
+                border-top: 1px solid #e0e0e0;
+                margin: 10px 0;
+              "
+            />
+            <div style="display: flex; justify-content: space-around">
+              <div style="position: relative" class="image-container">
+                <div class="overlay" id="overlay1">
+                  <div class="loader"></div>
+                </div>
+                <img
+                  id="chart1"
+                  src="4.jpg"
+                  alt="Chart 1"
+                  style="
+                    width: 280px;
+                    height: 280px;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                    cursor: pointer;
+                    margin: 10px;
+                  "
+                />
+                <script>
+                  // 获取元素
+                  const img1 = document.getElementById("chart1");
+                  const overlay1 = document.getElementById("overlay1");
+
+                  // 监听图片加载完成事件
+                  img1.onload = function () {
+                    // 图片加载完成后，延迟一秒再显示图片，同时隐藏加载动画和遮罩层
+                    setTimeout(function () {
+                      img1.style.display = "block";
+                      overlay1.style.display = "none";
+                    }, 1000); // 1000毫秒 = 1秒
+                  };
+                </script>
+              </div>
+
+              <div style="position: relative" class="image-container">
+                <div class="overlay" id="overlay2">
+                  <div class="loader"></div>
+                </div>
+                <img
+                  id="chart2"
+                  src="5.jpg"
+                  alt="Chart 2"
+                  style="
+                    width: 280px;
+                    height: 280px;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                    cursor: pointer;
+                    margin: 10px;
+                  "
+                />
+                <script>
+                  // 获取元素
+                  const img2 = document.getElementById("chart2");
+                  const overlay2 = document.getElementById("overlay2");
+
+                  // 监听图片加载完成事件
+                  img2.onload = function () {
+                    // 图片加载完成后，延迟一秒再显示图片，同时隐藏加载动画和遮罩层
+                    setTimeout(function () {
+                      img2.style.display = "block";
+                      overlay2.style.display = "none";
+                    }, 1000); // 1000毫秒 = 1秒
+                  };
+                </script>
+              </div>
+            </div>
+          </div>
+          <!-- Second Block: 失效后果指标值 -->
+          <div class="section" style="margin-bottom: 20px; flex: 1">
+            <h3 style="text-align: center">失效后果指标值</h3>
+            <hr
+              style="
+                border: none;
+                border-top: 1px solid #e0e0e0;
+                margin: 10px 0;
+              "
+            />
+            <table style="width: 100%; border-collapse: collapse">
+              <tr>
+                <th style="padding: 10px; border-bottom: 1px solid #ddd">
+                  路网全局效率变化率
+                </th>
+                <th style="padding: 10px; border-bottom: 1px solid #ddd">
+                  路网全局行程时间变化率
+                </th>
+                <th style="padding: 10px; border-bottom: 1px solid #ddd">
+                  路网全局碳排放
+                </th>
+              </tr>
+
+              <tr>
+                <td style="padding: 10px; text-align: center">0.02375</td>
+                <td style="padding: 10px; text-align: center">0.00368</td>
+                <td style="padding: 10px; text-align: center">0.170180927</td>
+              </tr>
+            </table>
+          </div>
+          <!-- Third Block: 关键数据集 -->
+          <div class="section" style="flex: 1">
+            <h3 style="text-align: center">关键数据集</h3>
+            <hr
+              style="
+                border: none;
+                border-top: 1px solid #e0e0e0;
+                margin: 10px 0;
+              "
+            />
+            <table style="width: 100%; border-collapse: collapse">
+              <tr>
+                <th style="padding: 10px; border-bottom: 1px solid #ddd">
+                  行程时间可靠性
+                </th>
+                <th style="padding: 10px; border-bottom: 1px solid #ddd">
+                  失效概率
+                </th>
+                <th style="padding: 10px; border-bottom: 1px solid #ddd">
+                  失效后果
+                </th>
+              </tr>
+
+              <tr>
+                <td style="padding: 10px; text-align: center">0.8625</td>
+                <td style="padding: 10px; text-align: center">0.1375</td>
+                <td style="padding: 10px; text-align: center">0.065583739</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <div class="result-section third-section">
+          <div
+            style="
+              width: 100%;
+              text-align: center;
+              background-color: #fff;
+              margin-top: 0;
+            "
+          >
+            <h2 style="text-align: center">可视化预测结果</h2>
+            <hr
+              style="border: none; border-top: 2px solid #e0e0e0; margin: 2px 0"
+            />
+          </div>
+          <div
+            class="result-section third-section"
+            style="
+              flex: 1;
+              background-color: #fff;
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              grid-template-rows: 1fr 1fr;
+              gap: 20px;
+              align-items: center;
+            "
+          >
+            <!-- Top Left: 失效概率排序图 -->
+            <div
+              style="position: relative; text-align: center"
+              class="image-container"
+            >
+              <div style="margin-bottom: 5px; font-size: 14px; color: #333">
+                失效概率排序图
+              </div>
+              <div class="overlay" id="overlay4">
+                <div class="loader"></div>
+              </div>
+              <img
+                id="probabilityChart1"
+                src="2.png"
+                alt="失效概率排序图"
+                style="
+                  width: 360px;
+                  height: 360px;
+                  border-radius: 8px;
+                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                  cursor: pointer;
+                  transition: transform 0.3s;
+                "
+              />
+              <script>
+                // 获取元素
+                const img4 = document.getElementById("probabilityChart1");
+                const overlay4 = document.getElementById("overlay4");
+
+                // 监听图片加载完成事件
+                img4.onload = function () {
+                  // 图片加载完成后，延迟一秒再显示图片，同时隐藏加载动画和遮罩层
+                  setTimeout(function () {
+                    img4.style.display = "block";
+                    overlay4.style.display = "none";
+                  }, 1000); // 1000毫秒 = 1秒
+                };
+              </script>
+            </div>
+            <!-- Top Right: 失效后果三维图 -->
+            <div
+              style="position: relative; text-align: center"
+              class="image-container"
+            >
+              <div style="margin-bottom: 5px; font-size: 14px; color: #333">
+                失效后果三维图
+              </div>
+              <div class="overlay" id="overlay5">
+                <div class="loader"></div>
+              </div>
+              <img
+                id="consequenceChart"
+                src="1.jpg"
+                alt="失效后果三维图"
+                style="
+                  width: 360px;
+                  height: 360px;
+                  border-radius: 8px;
+                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                  cursor: pointer;
+                  transition: transform 0.3s;
+                "
+              />
+              <script>
+                // 获取元素
+                const img5 = document.getElementById("consequenceChart");
+                const overlay5 = document.getElementById("overlay5");
+
+                // 监听图片加载完成事件
+                img5.onload = function () {
+                  // 图片加载完成后，延迟一秒再显示图片，同时隐藏加载动画和遮罩层
+                  setTimeout(function () {
+                    img5.style.display = "block";
+                    overlay5.style.display = "none";
+                  }, 1000); // 1000毫秒 = 1秒
+                };
+              </script>
+            </div>
+            <!-- Bottom Left: 关键热力地图 -->
+            <div
+              style="position: relative; text-align: center"
+              class="image-container"
+            >
+              <div style="margin-bottom: 5px; font-size: 14px; color: #333">
+                关键热力地图
+              </div>
+              <div class="overlay" id="overlay6">
+                <div class="loader"></div>
+              </div>
+              <img
+                id="heatmap"
+                src="3.jpg"
+                alt="关键热力地图"
+                style="
+                  width: 360px;
+                  height: 360px;
+                  border-radius: 8px;
+                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                  cursor: pointer;
+                  transition: transform 0.3s;
+                "
+              />
+              <script>
+                // 获取元素
+                const img6 = document.getElementById("heatmap");
+                const overlay6 = document.getElementById("overlay6");
+
+                // 监听图片加载完成事件
+                img6.onload = function () {
+                  // 图片加载完成后，延迟一秒再显示图片，同时隐藏加载动画和遮罩层
+                  setTimeout(function () {
+                    img6.style.display = "block";
+                    overlay6.style.display = "none";
+                  }, 1000); // 1000毫秒 = 1秒
+                };
+              </script>
+            </div>
+            <!-- Bottom Right: 结果分析与应用 -->
+            <div style="text-align: center">
+              <h3>结果分析与应用</h3>
+              <div
+                id="articleDisplay"
+                style="
+                  background-color: #f9f9f9;
+                  padding: 20px;
+                  border-radius: 12px;
+                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                  font-size: 16px;
+                  line-height: 1.6;
+                  color: #333;
+                  max-width: 800px;
+                  margin: 10px 0;
+                  cursor: pointer;
+                  white-space: pre-wrap;
+                "
+                onclick="toggleEditMode()"
+              >
+                <p>
+                  路段1-2在单车道封闭场景下关键度最高（达0.453)，表明其在此类突发事件中极易成为拥堵源头。建议在施工或事故高发区域（如立交桥入口）提前部署拖车、移动信号灯等应急设备，并与导航平台联动，实时推送绕行路径。
+                </p>
+              </div>
+              <div
+                id="fontSizeControls"
+                style="display: none; text-align: center; margin-top: 10px"
+              >
+                <button
+                  onmousedown="event.preventDefault(); changeFontSize(-1)"
+                  style="
+                    padding: 5px 10px;
+                    border-radius: 5px;
+                    border: none;
+                    background-color: #0071e3;
+                    color: white;
+                    cursor: pointer;
+                  "
+                >
+                  A-
+                </button>
+                <button
+                  onmousedown="event.preventDefault(); changeFontSize(1)"
+                  style="
+                    padding: 5px 10px;
+                    border-radius: 5px;
+                    border: none;
+                    background-color: #0071e3;
+                    color: white;
+                    cursor: pointer;
+                  "
+                >
+                  A+
+                </button>
+              </div>
+              <textarea
+                id="articleEdit"
+                style="
+                  display: none;
+                  width: 100%;
+                  max-width: 800px;
+                  height: 300px;
+                  padding: 20px;
+                  border-radius: 12px;
+                  border: 1px solid #ccc;
+                  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                  font-size: 16px;
+                  line-height: 1.6;
+                  color: #333;
+                  margin: 0 auto;
+                "
+                onkeydown="handleTab(event)"
+                onblur="saveArticle()"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      function loadImage(event, imgId) {
+        const reader = new FileReader();
+        reader.onload = function () {
+          const output = document.getElementById(imgId);
+          output.src = reader.result;
+        };
+        reader.readAsDataURL(event.target.files[0]);
+      }
+
+      function editCell(cell) {
+        const currentText = cell.innerText;
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = currentText;
+        input.style.width = "100%";
+        input.onblur = function () {
+          cell.innerText = input.value;
+        };
+        input.onkeydown = function (event) {
+          if (event.key === "Enter") {
+            cell.innerText = input.value;
+          }
+        };
+        cell.innerText = "";
+        cell.appendChild(input);
+        input.focus();
+      }
+
+      function editRanking(element) {
+        const currentText = element.innerText;
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = currentText;
+        input.style.width = "100%";
+        input.style.padding = "10px";
+        input.style.border = "none";
+        input.style.outline = "none";
+        input.style.backgroundColor = "transparent";
+        input.style.fontSize = "16px";
+        input.style.color = "#333";
+        input.onblur = function () {
+          element.innerText = input.value;
+        };
+        input.onkeydown = function (event) {
+          if (event.key === "Enter") {
+            element.innerText = input.value;
+          }
+        };
+        element.innerText = "";
+        element.appendChild(input);
+        input.focus();
+      }
+
+      function toggleEditMode() {
+        const display = document.getElementById("articleDisplay");
+        const edit = document.getElementById("articleEdit");
+        const controls = document.getElementById("fontSizeControls");
+        if (display.style.display !== "none") {
+          edit.value = display.innerText.trim();
+          display.style.display = "none";
+          edit.style.display = "block";
+          controls.style.display = "block";
+          edit.focus();
+        }
+      }
+
+      function changeFontSize(delta) {
+        const edit = document.getElementById("articleEdit");
+        const currentSize = parseInt(window.getComputedStyle(edit).fontSize);
+        edit.style.fontSize = currentSize + delta + "px";
+      }
+
+      function saveArticle(event) {
+        const display = document.getElementById("articleDisplay");
+        const edit = document.getElementById("articleEdit");
+        const controls = document.getElementById("fontSizeControls");
+        if (
+          event &&
+          (event.relatedTarget === controls.children[0] ||
+            event.relatedTarget === controls.children[1])
+        ) {
+          // If the blur event is triggered by clicking the font size buttons, do nothing
+          return;
+        }
+        display.innerHTML = edit.value.replace(/\n/g, "<br>");
+        display.style.display = "block";
+        edit.style.display = "none";
+        controls.style.display = "none";
+      }
+
+      function handleTab(event) {
+        if (event.key === "Tab") {
+          event.preventDefault();
+          const textarea = event.target;
+          const start = textarea.selectionStart;
+          const end = textarea.selectionEnd;
+          textarea.value =
+            textarea.value.substring(0, start) +
+            "    " +
+            textarea.value.substring(end);
+          textarea.selectionStart = textarea.selectionEnd = start + 4;
+        }
+      }
+
+      function changeLogo(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            document.querySelector(".logo img").src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    </script>
+  </body>
+</html>
